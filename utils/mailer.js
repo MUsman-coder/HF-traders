@@ -3,6 +3,10 @@ const nodemailer = require('nodemailer');
 let transporter = null;
 let attempted = false;
 
+function hasResendConfig() {
+  return Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM);
+}
+
 function getTransporter() {
   if (attempted) return transporter;
   attempted = true;
@@ -26,15 +30,19 @@ function getTransporter() {
 }
 
 async function verifyMailer() {
+  if (hasResendConfig()) {
+    return { configured: true, connected: true, provider: 'resend' };
+  }
+
   const t = getTransporter();
-  if (!t) return { configured: false, connected: false };
+  if (!t) return { configured: false, connected: false, provider: 'smtp' };
 
   try {
     await t.verify();
-    return { configured: true, connected: true };
+    return { configured: true, connected: true, provider: 'smtp' };
   } catch (err) {
     console.error('[mailer] SMTP verification failed:', err.code || err.message);
-    return { configured: true, connected: false, error: err.code || err.message };
+    return { configured: true, connected: false, provider: 'smtp', error: err.code || err.message };
   }
 }
 
@@ -45,6 +53,35 @@ async function verifyMailer() {
  * succeeds even if the confirmation email can't go out).
  */
 async function sendMail({ to, subject, text, html }) {
+  if (hasResendConfig()) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM,
+          to: [to],
+          subject,
+          text,
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const details = await response.text();
+        console.error('[mailer] Resend failed:', response.status, details);
+        return { sent: false, error: `Resend HTTP ${response.status}` };
+      }
+      return { sent: true, provider: 'resend' };
+    } catch (err) {
+      console.error('[mailer] Resend request failed:', err.message);
+      return { sent: false, error: err.message };
+    }
+  }
+
   const from = process.env.MAIL_FROM || 'HF Traders <no-reply@hftraders.com>';
   const t = getTransporter();
 
