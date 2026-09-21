@@ -128,6 +128,19 @@ router.get('/contacts', async (req, res, next) => {
   }
 });
 
+router.delete('/contacts/:id', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      'DELETE FROM contacts WHERE id = $1 RETURNING id',
+      [req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Contact not found.' });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/contacts/:id/reply', async (req, res, next) => {
   try {
     const { message } = req.body || {};
