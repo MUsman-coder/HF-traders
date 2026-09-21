@@ -265,6 +265,16 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteContact = async (contact: Contact) => {
+    if (!window.confirm(`Delete the message from "${contact.full_name}"? This cannot be undone.`)) return;
+    try {
+      await adminApiRequest(`/contacts/${contact.id}`, { method: 'DELETE' });
+      await loadAll();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not delete contact.');
+    }
+  };
+
   const handleLogout = () => {
     clearAdminToken();
     navigate('/admin/login');
@@ -473,6 +483,7 @@ const AdminDashboard: React.FC = () => {
                 labels={['Name', 'Email', 'Message', 'Date']}
                 emptyLabel="No contact messages yet."
                 onView={(row) => setDetail({ kind: 'contact', row })}
+                onDelete={handleDeleteContact}
               />
             )}
 
@@ -692,12 +703,14 @@ function SubmissionTable<T extends object>({
   labels,
   emptyLabel,
   onView,
+  onDelete,
 }: {
   rows: T[];
   columns: string[];
   labels: string[];
   emptyLabel: string;
   onView: (row: T) => void;
+  onDelete?: (row: T) => void;
 }) {
   const getCellValue = (row: T, column: string) => (row as Record<string, unknown>)[column];
 
@@ -715,7 +728,7 @@ function SubmissionTable<T extends object>({
                 {l}
               </th>
             ))}
-            <th className="px-4 py-3 text-right">View</th>
+            <th className="px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -737,6 +750,15 @@ function SubmissionTable<T extends object>({
                   >
                     <Eye size={14} />
                   </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(row)}
+                      className="p-2 rounded-lg hover:bg-red-500/10 text-white/60 hover:text-red-400 transition-colors"
+                      aria-label="Delete message"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>
