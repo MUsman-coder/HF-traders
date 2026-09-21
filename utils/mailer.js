@@ -20,9 +20,22 @@ function getTransporter() {
     host: SMTP_HOST,
     port: Number(SMTP_PORT) || 587,
     secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
+    auth: { user: SMTP_USER, pass: SMTP_PASS.replace(/\s+/g, '') },
   });
   return transporter;
+}
+
+async function verifyMailer() {
+  const t = getTransporter();
+  if (!t) return { configured: false, connected: false };
+
+  try {
+    await t.verify();
+    return { configured: true, connected: true };
+  } catch (err) {
+    console.error('[mailer] SMTP verification failed:', err.code || err.message);
+    return { configured: true, connected: false, error: err.code || err.message };
+  }
 }
 
 /**
@@ -49,4 +62,4 @@ async function sendMail({ to, subject, text, html }) {
   }
 }
 
-module.exports = { sendMail };
+module.exports = { sendMail, verifyMailer };

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { pool } = require('./db');
+const { verifyMailer } = require('./utils/mailer');
 
 const productsRouter = require('./routes/products');
 const contactRouter = require('./routes/contact');
@@ -33,7 +34,8 @@ app.use(express.json({ limit: '5mb' }));
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({ status: 'ok', database: 'connected', time: new Date().toISOString() });
+    const mailer = await verifyMailer();
+    res.json({ status: 'ok', database: 'connected', mailer, time: new Date().toISOString() });
   } catch (err) {
     res.status(503).json({
       status: 'degraded',
