@@ -12,9 +12,19 @@ const adminRouter = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const CORS_ORIGINS = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
+}));
 // Default body-size limit is 100kb, far too small for a base64-encoded
 // profile photo (which can easily be 1-2MB) — raised to 5mb to fit.
 app.use(express.json({ limit: '5mb' }));
@@ -54,6 +64,7 @@ app.use((err, req, res, next) => {
   }
   res.status(500).json({ error: 'Internal server error.' });
 });
+
 
 app.listen(PORT, () => {
   console.log(`HF Traders backend running on http://localhost:${PORT}`);
