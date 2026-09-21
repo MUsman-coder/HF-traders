@@ -18,6 +18,7 @@ import {
   Award,
   DollarSign,
   Leaf,
+  type LucideProps,
 } from 'lucide-react';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -102,7 +103,7 @@ const FAQS = [
 type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 interface FaqItemProps {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<LucideProps>;
   question: string;
   answer: string;
 }

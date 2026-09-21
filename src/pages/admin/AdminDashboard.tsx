@@ -686,7 +686,7 @@ const AdminDashboard: React.FC = () => {
 };
 
 /** Read-only table for submission-style data, with a "View" action per row. */
-function SubmissionTable<T extends Record<string, unknown>>({
+function SubmissionTable<T extends object>({
   rows,
   columns,
   labels,
@@ -699,6 +699,8 @@ function SubmissionTable<T extends Record<string, unknown>>({
   emptyLabel: string;
   onView: (row: T) => void;
 }) {
+  const getCellValue = (row: T, column: string) => (row as Record<string, unknown>)[column];
+
   if (rows.length === 0) {
     return <p className="text-white/40 text-sm py-8 text-center">{emptyLabel}</p>;
   }
@@ -720,10 +722,10 @@ function SubmissionTable<T extends Record<string, unknown>>({
           {rows.map((row, i) => (
             <tr key={i} className="border-t border-white/10 text-white/80 hover:bg-white/[0.03]">
               {columns.map((col) => (
-                <td key={col} className="px-4 py-3 max-w-xs truncate" title={String(row[col] ?? '')}>
-                  {col === 'created_at' && row[col]
-                    ? new Date(row[col] as string).toLocaleString()
-                    : String(row[col] ?? '—')}
+                <td key={col} className="px-4 py-3 max-w-xs truncate" title={String(getCellValue(row, col) ?? '')}>
+                  {col === 'created_at' && getCellValue(row, col)
+                    ? new Date(getCellValue(row, col) as string).toLocaleString()
+                    : String(getCellValue(row, col) ?? '—')}
                 </td>
               ))}
               <td className="px-4 py-3">

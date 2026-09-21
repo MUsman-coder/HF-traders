@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, ImageOff } from 'lucide-react';
+import { ImageOff } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import QuoteModal from '../components/QuoteModal';
 import ContactInfoModal from '../components/ContactInfoModal';

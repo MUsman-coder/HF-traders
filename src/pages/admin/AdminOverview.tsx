@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { Package, FileText, Mail, Briefcase, Users as UsersIcon, Clock } from 'lucide-react';
+import { Package, FileText, Mail, Briefcase, Users as UsersIcon, Clock, type LucideProps } from 'lucide-react';
 
 interface Product {
   category: string;
@@ -23,7 +23,7 @@ interface AdminOverviewProps {
 
 const CATEGORY_COLORS = ['#e8702a', '#4e9bff', '#38e0d8', '#f0894f', '#7c5cff', '#34d399', '#f59e0b'];
 
-const StatCard: React.FC<{ icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number | string }> = ({
+const StatCard: React.FC<{ icon: React.ComponentType<LucideProps>; label: string; value: number | string }> = ({
   icon: Icon,
   label,
   value,

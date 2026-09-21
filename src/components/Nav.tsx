@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Home as HomeIcon } from 'lucide-react';
+import { Menu, X, User, Home as HomeIcon, type LucideProps } from 'lucide-react';
 import Logo from './Logo';
 
 interface NavLink {
   label: string;
   to: string;
-  icon?: React.ComponentType<{ size?: number }>;
+  icon?: React.ComponentType<LucideProps>;
 }
 
 const NAV_LINKS: NavLink[] = [
