@@ -31,7 +31,20 @@ function getTransporter() {
 
 async function verifyMailer() {
   if (hasResendConfig()) {
-    return { configured: true, connected: true, provider: 'resend' };
+    try {
+      const response = await fetch('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+      });
+      if (!response.ok) {
+        const details = await response.text();
+        console.error('[mailer] Resend verification failed:', response.status, details);
+        return { configured: true, connected: false, provider: 'resend', error: `Resend HTTP ${response.status}` };
+      }
+      return { configured: true, connected: true, provider: 'resend' };
+    } catch (err) {
+      console.error('[mailer] Resend verification request failed:', err.message);
+      return { configured: true, connected: false, provider: 'resend', error: err.message };
+    }
   }
 
   const t = getTransporter();
@@ -81,7 +94,6 @@ async function sendMail({ to, subject, text, html }) {
       return { sent: false, error: err.message };
     }
   }
-
   const from = process.env.MAIL_FROM || 'HF Traders <no-reply@hftraders.com>';
   const t = getTransporter();
 
