@@ -62,6 +62,13 @@ router.post('/', async (req, res, next) => {
     );
 
     res.status(201).json({ success: true, user: sanitizeUser(rows[0]) });
+
+    sendMail({
+      to: normalizedEmail,
+      subject: 'HF Traders — Welcome to HF Traders',
+      text: `Hi ${String(fullName).trim()},\n\nWelcome to HF Traders. Your account has been created successfully.\n\nYou can now log in and start exploring our products and services.\n\n— HF Traders`,
+      html: `<p>Hi ${String(fullName).trim()},</p><p>Welcome to HF Traders. Your account has been created successfully.</p><p>You can now log in and start exploring our products and services.</p><p>— HF Traders</p>`,
+    }).catch(() => {});
   } catch (err) {
     next(err);
   }
@@ -134,9 +141,17 @@ router.post('/forgot-password', async (req, res, next) => {
       [user.id, token, expiresAt]
     );
 
-    // Returned directly here only because this app has no email service wired up yet.
-    // Replace this with an actual email send before using in production.
-    res.json({ ...genericResponse, devResetToken: token, devResetUrl: `/reset-password?token=${token}` });
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    await sendMail({
+      to: normalizedEmail,
+      subject: 'HF Traders — Reset your password',
+      text: `Hi,\n\nWe received a request to reset your password for your HF Traders account.\n\nUse the link below to create a new password:\n${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you did not request this, you can ignore this email.\n\n— HF Traders`,
+      html: `<p>Hi,</p><p>We received a request to reset your password for your HF Traders account.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 1 hour.</p><p>If you did not request this, you can ignore this email.</p><p>— HF Traders</p>`,
+    });
+
+    res.json(genericResponse);
   } catch (err) {
     next(err);
   }
@@ -165,6 +180,9 @@ router.post('/reset-password', async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const { rows: userRows } = await pool.query('SELECT email, full_name FROM users WHERE id = $1', [resetRecord.user_id]);
+    const user = userRows[0];
+
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
       passwordHash,
       resetRecord.user_id,
@@ -172,6 +190,15 @@ router.post('/reset-password', async (req, res, next) => {
     await pool.query('UPDATE password_resets SET used = true WHERE id = $1', [resetRecord.id]);
 
     res.json({ success: true, message: 'Password has been reset. You can now log in.' });
+
+    if (user) {
+      sendMail({
+        to: user.email,
+        subject: 'HF Traders — Your password has been reset',
+        text: `Hi ${user.full_name},\n\nYour password for HF Traders has been reset successfully.\n\nIf you did not make this change, please contact us immediately.\n\n— HF Traders`,
+        html: `<p>Hi ${user.full_name},</p><p>Your password for HF Traders has been reset successfully.</p><p>If you did not make this change, please contact us immediately.</p><p>— HF Traders</p>`,
+      }).catch(() => {});
+    }
   } catch (err) {
     next(err);
   }

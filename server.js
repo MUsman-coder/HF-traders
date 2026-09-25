@@ -18,6 +18,14 @@ const CORS_ORIGINS = (process.env.CORS_ORIGIN || '*')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
+//       return callback(null, true);
+//     }
+//     return callback(new Error(`CORS origin not allowed: ${origin}`));
+//   },
+// }));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
@@ -25,7 +33,10 @@ app.use(cors({
     }
     return callback(new Error(`CORS origin not allowed: ${origin}`));
   },
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}))
 // Default body-size limit is 100kb, far too small for a base64-encoded
 // profile photo (which can easily be 1-2MB) — raised to 5mb to fit.
 app.use(express.json({ limit: '5mb' }));
