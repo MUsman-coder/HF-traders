@@ -59,7 +59,7 @@ const BusinessPlanModal: React.FC<BusinessPlanModalProps> = ({ planName, onClose
             </p>
             <button
               onClick={onClose}
-              className="mt-6 bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-6 py-2.5 rounded-full transition-colors border border-white/15"
+              className="mt-6 bg-white/10 okkk hover:bg-white/20 text-white text-sm font-medium px-6 py-2.5 rounded-full transition-colors border border-white/15"
             >
               Close
             </button>
