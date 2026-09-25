@@ -26,7 +26,7 @@ function getTransporter() {
     secure: Number(SMTP_PORT) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS.replace(/\s+/g, '') },
   });
-  console.log('[mailer] SMTP configured — emails will be sent via SMTP.');
+  
   return transporter;
 }
 
